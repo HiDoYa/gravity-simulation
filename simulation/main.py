@@ -14,6 +14,10 @@ done = False
 
 clock = pygame.time.Clock()
 
+accX = 0
+accY = 0
+velX = 0
+velY = 0
 posX = 250
 posY = 100
 
@@ -25,13 +29,28 @@ while not done:
 	# Logic goes here
 	pressed = pygame.key.get_pressed()
 	if pressed[pygame.K_d]:
-		posX += 1
+		accX += 1
 	if pressed[pygame.K_w]:
-		posY -= 1
+		accY -= 1
 	if pressed[pygame.K_a]:
-		posX -= 1
+		accX -= 1
 	if pressed[pygame.K_s]:
-		posY += 1
+		accY += 1
+
+	velX += accX
+	velY += accY
+
+	if posX + velX > 500:
+		posX -= velX
+	
+	if posX + velX < 0:
+		posX -= velX
+
+	if posY + velY > 500:
+		posY -= velY
+
+	if posY + velY < 0:
+		posY -= velY
 
 	# Fill screen
 	screen.fill(WHITE)
@@ -39,6 +58,8 @@ while not done:
 	# Draw
 	pygame.draw.circle(screen, BLACK, [posX, posY], 50)
 	pygame.draw.circle(screen, BLACK, [250, 400], 50)
+
+	noMove = False
 
 	# Updates
 	pygame.display.flip()
