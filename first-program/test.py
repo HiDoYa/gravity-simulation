@@ -1,6 +1,6 @@
 print("Hello world")
 
-x = 10;
+x = 0;
 
 #if else
 if x == 10:
@@ -17,3 +17,12 @@ while x < 15:
 listOfSomething = ["something", "something else", "this is really something", "lorem ipsum dolor"]
 for x in listOfSomething:
     print(x)
+
+zet = 0.5
+print zet
+zet *= 1.5
+print zet
+
+import time
+ticks = time.time()
+print ticks
