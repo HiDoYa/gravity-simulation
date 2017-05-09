@@ -14,12 +14,10 @@ done = False
 
 clock = pygame.time.Clock()
 
-accX = 0
-accY = 0
+posX = 250
+posY = 250
 velX = 0
 velY = 0
-posX = 250
-posY = 100
 
 # Main loop
 while not done:
@@ -29,16 +27,13 @@ while not done:
 	# Logic goes here
 	pressed = pygame.key.get_pressed()
 	if pressed[pygame.K_d]:
-		accX += 1
+		velX += 1
 	if pressed[pygame.K_w]:
-		accY -= 1
+		velY -= 1
 	if pressed[pygame.K_a]:
-		accX -= 1
+		velX -= 1
 	if pressed[pygame.K_s]:
-		accY += 1
-
-	velX += accX
-	velY += accY
+		velY += 1
 
 	posX += velX;
 	posY += velY;
