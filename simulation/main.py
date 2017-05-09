@@ -40,17 +40,8 @@ while not done:
 	velX += accX
 	velY += accY
 
-	if posX + velX > 500:
-		posX -= velX
-	
-	if posX + velX < 0:
-		posX -= velX
-
-	if posY + velY > 500:
-		posY -= velY
-
-	if posY + velY < 0:
-		posY -= velY
+	posX += velX;
+	posY += velY;
 
 	# Fill screen
 	screen.fill(WHITE)

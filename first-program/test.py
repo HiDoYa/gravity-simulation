@@ -13,7 +13,7 @@ while x < 15:
     print(x)
     x = x + 1
 
-#for loop and sequence object
+#for loop and sequence
 listOfSomething = ["something", "something else", "this is really something", "lorem ipsum dolor"]
 for x in listOfSomething:
     print(x)
