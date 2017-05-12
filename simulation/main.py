@@ -37,15 +37,15 @@ class Object:
 		self.velY = 0 
 
 	def calcNewPos(self, forceX, forceY):
-                # F = ma -> a = F / m
+		# F = ma -> a = F / m
 		self.accX = forceX / self.mass
 		self.accY = forceY / self.mass
 
-                # Acceleration is change in velocity
+		# Acceleration is change in velocity
 		self.velX += self.accX
 		self.velY += self.accY
 
-                # Velocity is change in displacement
+		# Velocity is change in displacement
 		self.posX += self.velX
 		self.posY += self.velY
 
@@ -53,15 +53,15 @@ class Object:
 		diffX = obj.posX - self.posX
 		diffY = obj.posY - self.posY
 
-                angle = math.atan(diffY/diffX)
+		angle = math.atan(diffY/diffX)
 
-                if diffX < 0:
-                    angle += math.pi
+		if diffX < 0:
+			angle += math.pi
 
 		return angle
 
 	def calcGrav(self, obj):
-                # F = G * (m1 * m2 / r^2)
+		# F = G * (m1 * m2 / r^2)
 		distance = math.sqrt((self.posX - obj.posX)**2 + (self.posY - obj.posY)**2)
 		return GRAV_CONST * (self.mass * obj.mass) / (distance**2)
 
@@ -70,7 +70,7 @@ class Object:
 		force = self.calcGrav(obj)
 		x.calcNewPos(force * math.cos(angle), force * math.sin(angle))
 
-        def collision(self, obj):
+	def collision(self, obj):
 
 	def drawObj(self):
 		pygame.draw.circle(screen, BLACK, [int(self.posX), int(self.posY)], self.mass)
@@ -79,7 +79,7 @@ class Object:
 objects = []
 
 for i in range(random.randint(3, 10)):
-    objects.append(Object(10, random.randint(10, 900), random.randint(10, 720)))
+	objects.append(Object(10, random.randint(10, 900), random.randint(10, 720)))
 
 # Main loop
 while not done:
