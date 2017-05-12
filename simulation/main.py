@@ -13,7 +13,6 @@ size = (960, 720)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Test")
 done = False
-begin = False
 
 clock = pygame.time.Clock()
 random.seed()
@@ -68,9 +67,32 @@ class Object:
 	def calcHandle(self, obj):
 		angle = self.calcAngle(obj)
 		force = self.calcGrav(obj)
+		if self.collision(obj):
+			self.velX = 0
+			self.velY = 0
+			force = 0
 		x.calcNewPos(force * math.cos(angle), force * math.sin(angle))
 
 	def collision(self, obj):
+		selfRight = self.posX + self.mass
+		selfLeft = self.posX - self.mass
+		selfBot = self.posY + self.mass
+		selfTop = self.posY - self.mass
+
+		objRight = obj.posX + obj.mass
+		objLeft = obj.posX - obj.mass
+		objBot = obj.posY + obj.mass
+		objTop = obj.posY - obj.mass
+
+		if selfRight > objLeft and selfBot > objTop and selfLeft < objRight and selfTop < objBot:
+			return True
+		if selfRight < objLeft and selfBot > objTop and selfLeft > objRight and selfTop < objBot:
+			return True
+		if selfRight > objLeft and selfBot < objTop and selfLeft < objRight and selfTop > objBot:
+			return True
+		if selfRight < objLeft and selfBot < objTop and selfLeft > objRight and selfTop > objBot:
+			return True
+		return False
 
 	def drawObj(self):
 		pygame.draw.circle(screen, BLACK, [int(self.posX), int(self.posY)], self.mass)
@@ -78,8 +100,11 @@ class Object:
 # Create objects
 objects = []
 
-for i in range(random.randint(3, 10)):
-	objects.append(Object(10, random.randint(10, 900), random.randint(10, 720)))
+def init_objects():
+	for i in range(random.randint(3, 10)):
+		objects.append(Object(random.randint(8, 13), random.randint(10, 900), random.randint(10, 720)))
+
+init_objects()
 
 # Main loop
 while not done:
@@ -89,11 +114,10 @@ while not done:
 	# Logic goes here
 	pressed = pygame.key.get_pressed()
 	if pressed[pygame.K_SPACE]:
-		begin = True
+		del objects[:]
+		init_objects()
 
-	if begin:
-		print "hello"
-	
+
 	for x in objects:
 		for y in objects:
 			if  x != y:
