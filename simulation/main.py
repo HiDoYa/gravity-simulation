@@ -2,107 +2,118 @@ import pygame
 import random
 import math
 
-# Colors
+# Basic colors 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 # Initialize for program
 pygame.init()
 pygame.font.init()
-size = (960, 720)
+size = (1280, 720)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Test")
 done = False
+restart = False
 
 clock = pygame.time.Clock()
 random.seed()
 
 # Constants
-# GRAV_CONST = 6.67408 * (10 ** (-11))
+#GRAV_CONST = 6.67408 * (10 ** (-11))
 GRAV_CONST = 6.67408 * (10 ** (1))
 
 # class
 class Object:
-	def __init__ (self, mass, posX, posY):
+	def __init__ (self, mass, displacement_x, displacement_y):
 		self.mass = mass
 
-		self.posX = posX
-		self.posY = posY
+		self.displacement_x = displacement_x
+		self.displacement_y = displacement_y
 
-		self.accX = 0
-		self.accY = 0
+		self.acceleration_x = 0
+		self.acceleration_y = 0
 
-		self.velX = 0
-		self.velY = 0 
+		self.velocity_x = 0
+		self.velocity_y = 0 
 
-	def calcNewPos(self, forceX, forceY):
+	def calculate_new_displacement(self):
+		# Velocity is change in displacement
+		self.displacement_x += self.velocity_x
+		self.displacement_y += self.velocity_y
+
+	def calculate_new_velocity(self, obj):
+		# Find angle and force in x and y
+		angle = self.calculate_angle(obj)
+		force = self.calculate_force(obj)
+		force_x = force * math.cos(angle)
+		force_y = force * math.sin(angle)
+
 		# F = ma -> a = F / m
-		self.accX = forceX / self.mass
-		self.accY = forceY / self.mass
+		self.acceleration_x = force_x / self.mass
+		self.acceleration_y = force_y / self.mass
 
 		# Acceleration is change in velocity
-		self.velX += self.accX
-		self.velY += self.accY
+		self.velocity_x += self.acceleration_x
+		self.velocity_y += self.acceleration_y
 
-		# Velocity is change in displacement
-		self.posX += self.velX
-		self.posY += self.velY
+	def calculate_angle(self, obj):
+		diff_x = obj.displacement_x - self.displacement_x
+		diff_y = obj.displacement_y - self.displacement_y
 
-	def calcAngle(self, obj):
-		diffX = obj.posX - self.posX
-		diffY = obj.posY - self.posY
+		if diff_x != 0:
+			angle = math.atan(diff_y / diff_x)
+		else:
+			angle = 0
 
-		angle = math.atan(diffY/diffX)
-
-		if diffX < 0:
+		if diff_x < 0:
 			angle += math.pi
 
 		return angle
 
-	def calcGrav(self, obj):
+	def calculate_force(self, obj):
 		# F = G * (m1 * m2 / r^2)
-		distance = math.sqrt((self.posX - obj.posX)**2 + (self.posY - obj.posY)**2)
-		return GRAV_CONST * (self.mass * obj.mass) / (distance**2)
+		distance = math.sqrt((self.displacement_x - obj.displacement_x)**2 + (self.displacement_y - obj.displacement_y)**2)
+		return GRAV_CONST * (self.mass * obj.mass)/ (distance**2)
 
-	def calcHandle(self, obj):
-		angle = self.calcAngle(obj)
-		force = self.calcGrav(obj)
+	def collision_check(self, obj):
 		if self.collision(obj):
-			self.velX = 0
-			self.velY = 0
-			force = 0
-		x.calcNewPos(force * math.cos(angle), force * math.sin(angle))
+			# P = MV
+			init_momentum_x = self.velocity_x * self.mass + obj.velocity_x * obj.mass
+			init_momentum_y = self.velocity_y * self.mass + obj.velocity_y * obj.mass
+
+			self.velocity_x = ((self.mass - obj.mass) * self.velocity_x)/(self.mass + obj.mass)
+			self.velocity_y = ((self.mass - obj.mass) * self.velocity_y)/(self.mass + obj.mass)
 
 	def collision(self, obj):
-		selfRight = self.posX + self.mass
-		selfLeft = self.posX - self.mass
-		selfBot = self.posY + self.mass
-		selfTop = self.posY - self.mass
+		self_right = self.displacement_x + self.mass
+		self_left = self.displacement_x - self.mass
+		self_bot = self.displacement_y + self.mass
+		self_top = self.displacement_y - self.mass
 
-		objRight = obj.posX + obj.mass
-		objLeft = obj.posX - obj.mass
-		objBot = obj.posY + obj.mass
-		objTop = obj.posY - obj.mass
+		obj_right = obj.displacement_x + obj.mass
+		obj_left = obj.displacement_x - obj.mass
+		obj_bot = obj.displacement_y + obj.mass
+		obj_top = obj.displacement_y - obj.mass
 
-		if selfRight > objLeft and selfBot > objTop and selfLeft < objRight and selfTop < objBot:
+		if self_right > obj_left and self_bot > obj_top and self_left < obj_right and self_top < obj_bot:
 			return True
-		if selfRight < objLeft and selfBot > objTop and selfLeft > objRight and selfTop < objBot:
+		if self_right < obj_left and self_bot > obj_top and self_left > obj_right and self_top < obj_bot:
 			return True
-		if selfRight > objLeft and selfBot < objTop and selfLeft < objRight and selfTop > objBot:
+		if self_right > obj_left and self_bot < obj_top and self_left < obj_right and self_top > obj_bot:
 			return True
-		if selfRight < objLeft and selfBot < objTop and selfLeft > objRight and selfTop > objBot:
+		if self_right < obj_left and self_bot < obj_top and self_left > obj_right and self_top > obj_bot:
 			return True
 		return False
 
-	def drawObj(self):
-		pygame.draw.circle(screen, BLACK, [int(self.posX), int(self.posY)], self.mass)
+	def draw_object(self):
+		pygame.draw.circle(screen, WHITE, [int(self.displacement_x), int(self.displacement_y)], self.mass)
 
 # Create objects
 objects = []
 
 def init_objects():
 	for i in range(random.randint(3, 10)):
-		objects.append(Object(random.randint(8, 13), random.randint(10, 900), random.randint(10, 720)))
+		objects.append(Object(random.randint(8, 13), random.randint(0, size[0]), random.randint(0, size[1])))
 
 init_objects()
 
@@ -114,21 +125,37 @@ while not done:
 	# Logic goes here
 	pressed = pygame.key.get_pressed()
 	if pressed[pygame.K_SPACE]:
+		restart = True
+
+	if restart:
 		del objects[:]
 		init_objects()
+		if not pressed[pyGame.K_SPACE]:
+			restart = False
 
 
-	for x in objects:
-		for y in objects:
-			if  x != y:
-				x.calcHandle(y)
+
+	for i in range(3):
+		for x in objects:
+			if i == 2:
+				# Calculate new position wtih velocities
+				x.calculate_new_displacement()
+			else:
+				for y in objects:
+					if  x != y:
+						if i == 0:
+							# Calculate  velocities for collisions
+							x.collision_check(y)
+						if i == 1:
+							# Calculate new velocities for acceleration and force
+							x.calculate_new_velocity(y)
 
 	# Fill screen
-	screen.fill(WHITE)
+	screen.fill(BLACK)
 
 	# Draw
 	for i in objects:
-		i.drawObj()
+		i.draw_object()
 
 	noMove = False
 
