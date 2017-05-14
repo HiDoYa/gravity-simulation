@@ -16,11 +16,14 @@ pygame.display.set_caption("Gravity Simulation - Hiroya")
 
 # Font and text
 pygame.font.init()
-text_font = pygame.font.SysFont('Times New Roman', 20)
+text_font = pygame.font.SysFont('Times New Roman', 15)
+
 text_space = text_font.render("Space to Restart", False, WHITE)
 text_z = text_font.render("Z for Path", False, WHITE)
 text_x = text_font.render("X for Border", False, WHITE)
 text_c = text_font.render("C for Color", False, WHITE)
+text_s = text_font.render("S to speed up", False, WHITE)
+text_a = text_font.render("A to slow down", False, WHITE)
 
 clock = pygame.time.Clock()
 random.seed()
@@ -29,6 +32,7 @@ random.seed()
 objects = []
 number_of_objects = 20
 start_mass = 30
+game_speed = 1
 
 # Create border
 border_thickness = 5
@@ -46,6 +50,8 @@ border = True
 
 # Constant
 GRAV_CONST = 6.67408 * (10 ** (-11))
+# This looks pretty cool
+# GRAV_CONST = -6.67408 * (10 ** (-11))
 
 # Returns true if the string is an integer
 def string_is_int(number):
@@ -223,9 +229,18 @@ while not done:
     elif pressed[pygame.K_x] and not pressing:
         pressing = True
         border = not border
+        # Border needs to disappear
+        screen.fill(BLACK)
     elif pressed[pygame.K_c] and not pressing:
         pressing = True
         draw_color = not draw_color
+    elif pressed[pygame.K_s] and not pressing:
+        pressing = True
+        game_speed += 1
+    elif pressed[pygame.K_a] and not pressing:
+        pressing = True
+        if game_speed > 0:
+            game_speed -= 1
 
     # Reset key press if all keys aren't pressed
     all_empty = True
@@ -242,29 +257,37 @@ while not done:
     if all_empty:
         pressing = False
 
-    # Checks for collision and deletes y if applicable
-    for x in objects:
-        for y in objects:
-            if x != y and not x.merged and not y.merged:
-                x.collision(y)
+    for num in range(game_speed):
+        # Checks for collision and deletes y if applicable
+        for x in objects:
+            for y in objects:
+                if x != y and not x.merged and not y.merged:
+                    x.collision(y)
 
-    # Calculates new velocity based on force of gravity
-    for x in objects:
-        for y in objects:
-            if x != y and not x.merged and not y.merged:
-                x.calculate_new_velocity(y)
+        # Calculates new velocity based on force of gravity
+        for x in objects:
+            for y in objects:
+                if x != y and not x.merged and not y.merged:
+                    x.calculate_new_velocity(y)
 
-    # Calculates position based on velocity
-    for x in objects:
-        x.calculate_new_position()
+        # Calculates position based on velocity
+        for x in objects:
+            x.calculate_new_position()
 
-    # Fill screen
-    if not draw_path:
-        screen.fill(BLACK)
+        # Fill screen
+        if not draw_path:
+            screen.fill(BLACK)
 
-    # Draw
-    for i in objects:
-        i.draw_object()
+        # Draw
+        for i in objects:
+            i.draw_object()
+
+    # Game speed
+    text_speed = text_font.render("Speed: " + str(game_speed) + "x", False, WHITE)
+    pygame.draw.rect(screen, (40, 40, 40), (0, 0, 120, 40))
+    screen.blit(text_speed, (10, 14))
+    screen.blit(text_s, (10, 40))
+    screen.blit(text_a, (10, 55))
 
     # Instructions
     screen.blit(text_space, (10, size[1] - 100))
