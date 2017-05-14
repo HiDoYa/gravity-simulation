@@ -22,16 +22,21 @@ text_space = text_font.render("Space to Restart", False, WHITE)
 text_z = text_font.render("Z for Path", False, WHITE)
 text_x = text_font.render("X for Border", False, WHITE)
 text_c = text_font.render("C for Color", False, WHITE)
-text_s = text_font.render("S to speed up", False, WHITE)
-text_a = text_font.render("A to slow down", False, WHITE)
+text_s = text_font.render("Q/W to speed up", False, WHITE)
+text_a = text_font.render("A/S to slow down", False, WHITE)
+text_d = text_font.render("E/R for more mass", False, WHITE)
+text_f = text_font.render("D/F for less mass", False, WHITE)
+text_g = text_font.render("T/Y for more objects", False, WHITE)
+text_h = text_font.render("G/H for less objects", False, WHITE)
+text_p = text_font.render("P to Pause/Unpause", False, WHITE)
 
 clock = pygame.time.Clock()
 random.seed()
 
 # Create objects
 objects = []
-number_of_objects = 20
-start_mass = 30
+number_of_objects = 5
+start_mass = 250
 game_speed = 1
 
 # Create border
@@ -44,6 +49,7 @@ border_down = (0, size[1] - border_thickness, size[0], border_thickness)
 # Flags
 done = False
 pressing = False
+pause = False
 draw_path = False
 draw_color = True
 border = True
@@ -77,6 +83,7 @@ class Object:
         # Initialize mass and position 
         self.mass = mass
         self.merged = False
+        self.selected = False
                 
         self.color = color
 
@@ -184,6 +191,11 @@ class Object:
 
     def draw_object(self):
         if not self.merged:
+            # If an object is selected, draw an outline around them
+            if self.selected:
+                pygame.draw.circle(screen, DARK_RED, [int(self.position_x), int(self.position_y)], int(self.radius) + 4)
+
+            # Draw objects. If/else for diff color modes
             if draw_color:
                 pygame.draw.circle(screen, self.color, [int(self.position_x), int(self.position_y)], int(self.radius))
             else:
@@ -223,24 +235,87 @@ while not done:
         # Delete objects and reinitialize for new set of objects
         del objects[:]
         init_objects()
+    # Path
     elif pressed[pygame.K_z] and not pressing:
         pressing = True
         draw_path = not draw_path 
+    # Border
     elif pressed[pygame.K_x] and not pressing:
         pressing = True
         border = not border
         # Border needs to disappear
         screen.fill(BLACK)
+    # Color
     elif pressed[pygame.K_c] and not pressing:
         pressing = True
         draw_color = not draw_color
-    elif pressed[pygame.K_s] and not pressing:
+    # Game speed +
+    elif pressed[pygame.K_q] and not pressing:
         pressing = True
         game_speed += 1
+    elif pressed[pygame.K_w] and not pressing:
+        pressing = True
+        game_speed += 10
+    # Game speed -
     elif pressed[pygame.K_a] and not pressing:
         pressing = True
-        if game_speed > 0:
+        if game_speed > 1:
             game_speed -= 1
+    elif pressed[pygame.K_s] and not pressing:
+        pressing = True
+        if game_speed > 10:
+            game_speed -= 10
+    # Mass +
+    elif pressed[pygame.K_e] and not pressing:
+        pressing = True
+        start_mass += 1
+    elif pressed[pygame.K_r] and not pressing:
+        pressing = True
+        start_mass += 10
+    # Mass -
+    elif pressed[pygame.K_d] and not pressing:
+        pressing = True
+        if start_mass > 1:
+            start_mass -= 1
+    elif pressed[pygame.K_f] and not pressing:
+        pressing = True
+        if start_mass > 11:
+            start_mass -= 10
+    # Num +
+    elif pressed[pygame.K_t] and not pressing:
+        pressing = True
+        number_of_objects += 1
+    elif pressed[pygame.K_y] and not pressing:
+        pressing = True
+        number_of_objects += 10
+    # Num -
+    elif pressed[pygame.K_g] and not pressing:
+        pressing = True
+        if number_of_objects > 1:
+            number_of_objects -= 1
+    elif pressed[pygame.K_h] and not pressing:
+        pressing = True
+        if number_of_objects > 11:
+            number_of_objects -= 10
+    # Pause
+    elif pressed[pygame.K_p] and not pressing:
+        pressing = True
+        pause = not pause
+
+    # Check if player clicked on an object
+    if pygame.mouse.get_pressed()[0]:
+        # To check whether to deselect item
+        for i in objects:
+            # Deselect all other objects
+            i.selected = False
+            # Find distance between mouse and object
+            mouse_pos = pygame.mouse.get_pos()
+            distance = math.sqrt((mouse_pos[0] - i.position_x)**2 + (mouse_pos[1] - i.position_y)**2)
+            # If the distance is smaller than the radius, the mouse is in the object and is selected
+            if i.radius > distance:
+                # Current object is selected
+                i.selected = True
+                break
 
     # Reset key press if all keys aren't pressed
     all_empty = True
@@ -257,38 +332,69 @@ while not done:
     if all_empty:
         pressing = False
 
-    for num in range(game_speed):
-        # Checks for collision and deletes y if applicable
-        for x in objects:
-            for y in objects:
-                if x != y and not x.merged and not y.merged:
-                    x.collision(y)
+    if not pause:
+        for num in range(game_speed):
+            # Checks for collision and deletes y if applicable
+            for x in objects:
+                for y in objects:
+                    if x != y and not x.merged and not y.merged:
+                        x.collision(y)
 
-        # Calculates new velocity based on force of gravity
-        for x in objects:
-            for y in objects:
-                if x != y and not x.merged and not y.merged:
-                    x.calculate_new_velocity(y)
+            # Zeroes out acceleration
+            for x in objects:
+                x.acceleration_x = 0
+                x.acceleration_y = 0
 
-        # Calculates position based on velocity
-        for x in objects:
-            x.calculate_new_position()
+            # Calculates new velocity based on force of gravity
+            for x in objects:
+                for y in objects:
+                    if x != y and not x.merged and not y.merged:
+                        x.calculate_new_velocity(y)
 
-        # Fill screen
-        if not draw_path:
-            screen.fill(BLACK)
+            # Calculates position based on velocity
+            for x in objects:
+                x.calculate_new_position()
 
-        # Draw
-        for i in objects:
-            i.draw_object()
+            # Fill screen
+            if not draw_path:
+                screen.fill(BLACK)
 
-    # Game speed
+            # Draw
+            for i in objects:
+                i.draw_object()
+
+    # Rectangle for top bar
+    pygame.draw.rect(screen, (40, 40, 40), (0, 0, size[0], 40))
+
+    # If an object is selected, display its information
+    for i in objects:
+        if i.selected:
+            acceleration = math.sqrt(i.acceleration_x ** 2 + i.acceleration_y ** 2)
+            velocity = math.sqrt(i.velocity_x ** 2 + i.velocity_y ** 2)
+            object_information = "X Position: " + str(round(i.position_x, 2)) + "  Y Position: " + str(round(i.position_y, 2)) + "  Velocity: " + str(round(velocity, 3)) + "  Acceleration: " + str(round(acceleration, 5))
+            text_display = text_font.render(object_information, False, WHITE)
+            screen.blit(text_display, (600, 14))
+            break
+
+    # Game speed change
     text_speed = text_font.render("Speed: " + str(game_speed) + "x", False, WHITE)
-    pygame.draw.rect(screen, (40, 40, 40), (0, 0, 120, 40))
     screen.blit(text_speed, (10, 14))
     screen.blit(text_s, (10, 40))
     screen.blit(text_a, (10, 55))
+    screen.blit(text_p, (10, 70))
 
+    # Mass Change
+    text_mass = text_font.render("Init Mass: " + str(start_mass) + "*10^11 kg", False, WHITE)
+    screen.blit(text_mass, (190, 14))
+    screen.blit(text_d, (190, 40))
+    screen.blit(text_f, (190, 55))
+
+    # Number change
+    text_number = text_font.render("Init Number: " + str(number_of_objects), False, WHITE)
+    screen.blit(text_number, (400, 14))
+    screen.blit(text_g, (400, 40))
+    screen.blit(text_h, (400, 55))
+    
     # Instructions
     screen.blit(text_space, (10, size[1] - 100))
     screen.blit(text_z, (10, size[1] - 75))
