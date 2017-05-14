@@ -84,6 +84,7 @@ class Object:
         self.mass = mass
         self.merged = False
         self.selected = False
+        self.store_force = 0
                 
         self.color = color
 
@@ -156,7 +157,8 @@ class Object:
     def calculate_force(self, obj):
         # Equation for gravity (using big G)
         distance = math.sqrt((self.position_x - obj.position_x)**2 + (self.position_y - obj.position_y)**2)
-        return GRAV_CONST * (self.mass * obj.mass)/ (distance**2)
+        self.store_force = GRAV_CONST * (self.mass * obj.mass)/ (distance**2)
+        return self.store_force
 
     def collision(self, obj):
         # Gets distance beteween two objects
@@ -371,7 +373,7 @@ while not done:
         if i.selected and not i.merged:
             acceleration = math.sqrt(i.acceleration_x ** 2 + i.acceleration_y ** 2)
             velocity = math.sqrt(i.velocity_x ** 2 + i.velocity_y ** 2)
-            object_information = "X Position: " + str(round(i.position_x, 2)) + "  Y Position: " + str(round(i.position_y, 2)) + "  Velocity: " + str(round(velocity, 3)) + "  Acceleration: " + str(round(acceleration, 5))
+            object_information = "X Position: " + str(round(i.position_x, 2)) + "  Y Position: " + str(round(i.position_y, 2)) + "  Velocity: " + str(round(velocity, 3)) + "m/s  Acceleration: " + str(round(acceleration, 5)) + "m/s^2  Force:" + str(round(i.store_force, -8)) + "N"
             text_display = text_font.render(object_information, False, WHITE)
             screen.blit(text_display, (600, 14))
             break
