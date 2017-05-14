@@ -368,7 +368,7 @@ while not done:
 
     # If an object is selected, display its information
     for i in objects:
-        if i.selected:
+        if i.selected and not i.merged:
             acceleration = math.sqrt(i.acceleration_x ** 2 + i.acceleration_y ** 2)
             velocity = math.sqrt(i.velocity_x ** 2 + i.velocity_y ** 2)
             object_information = "X Position: " + str(round(i.position_x, 2)) + "  Y Position: " + str(round(i.position_y, 2)) + "  Velocity: " + str(round(velocity, 3)) + "  Acceleration: " + str(round(acceleration, 5))
