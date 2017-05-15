@@ -11,6 +11,7 @@ Idea: Can store examples in files and make simulations
 
 '''
 import math
+import os
 import pygame
 import random
 import sys
@@ -23,9 +24,12 @@ def string_is_int(number):
 	except ValueError:
 		return False
 
+# Variables and flags
 width = 1280
 height = 720
 file_open = False
+file_position_x = []
+file_position_y = []
 
 # Checks for diff resolution or for file to open
 if len(sys.argv) > 1:
@@ -41,12 +45,15 @@ if len(sys.argv) > 1:
 if file_open:
 	preset_file = open(file_to_open, "r")
 	stored_data = preset_file.readlines()
+	# Remove square brackets from list
+	stored_data[2] =stored_data[2].replace("[", "").replace("]", "")
+	stored_data[3] =stored_data[3].replace("[", "").replace("]", "")
 
 	# Sets starting positions based on data
 	start_mass = int(stored_data[0])
 	number_of_objects = int(stored_data[1])
-	file_positions_x = [int(x) for x in stored_data[2].split(',')]
-	file_positions_y = [int(x) for x in stored_data[3].split(',')]
+	file_position_x = [int(x) for x in stored_data[2].split(',')]
+	file_position_y = [int(x) for x in stored_data[3].split(',')]
 
 	preset_file.close()
  
@@ -79,6 +86,7 @@ text_f = text_font.render("S for less mass", False, WHITE)
 text_g = text_font.render("E for more objects", False, WHITE)
 text_h = text_font.render("D for less objects", False, WHITE)
 text_p = text_font.render("P to pause/unpause", False, WHITE)
+text_o = text_font.render("O to save", False, WHITE)
 
 clock = pygame.time.Clock()
 random.seed()
@@ -243,17 +251,23 @@ class Object:
 def init_objects():
 	# Resets screen regardless of flag draw_path
 	screen.fill(BLACK)
+	if not file_open:
+		file_position_x[:] = []
+		file_position_y[:] = []
 
 	for i in range(number_of_objects):
 		# Mass must be in 10^11kg scale (because gravity would be too weak otherwise)
 		mass = start_mass * (10 ** 11)
 		if file_open:
-			position_x = file_positions_x[i]
-			position_y = file_positions_y[i]
+			position_x = file_position_x[i]
+			position_y = file_position_y[i]
 		else:
 			# Randomized position
 			position_x = random.randint(0, size[0])
 			position_y = random.randint(0, size[1])
+			# Stores position in var for saving
+			file_position_x.append(position_x)
+			file_position_y.append(position_y)
 		# Randomized color
 		color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 		# Add the object and calculate radius
@@ -331,6 +345,33 @@ while not done:
 		last_time = current_time
 		pause = not pause
 
+	# Save
+	elif pressed[pygame.K_o] and current_time > delay + last_time:
+		last_time = current_time
+		current_files = os.listdir("./")
+		# Look through each preset for a number preset that doesn't exist yet
+		# There must be one usable file name in current_files + 1
+		num_for_file = -1
+		for j in range(len(current_files) + 1):
+			str_to_check = "preset" + str(j) + ".txt"
+			current_use = True
+			# Only use file name if it isn't the same as the other file names in the directory
+			for i in range(len(current_files)):
+				if current_files[i] == str_to_check:
+					current_use = False
+					break
+			# Exit if match was found
+			if current_use:
+				num_for_file = j
+				break
+		# Save current in file
+		save_file = open("preset" + str(num_for_file) + ".txt", "w")
+		save_file.write(str(start_mass) + '\n')
+		save_file.write(str(number_of_objects) + '\n')
+		save_file.write(str(file_position_x) + '\n')
+		save_file.write(str(file_position_y))
+		save_file.close()
+
 	# Wtf
 	elif pressed[pygame.K_m] and current_time > delay + last_time:
 		last_time = current_time
@@ -393,13 +434,13 @@ while not done:
 	for i in objects:
 		if i.selected and not i.merged:
 			object_information_x = "X  Position: " + str(round(i.position_x, 2))
-			object_information_y = "Y  Position: " + str(round(i.position_y, 2))
+			object_information_y = "Y  Position: " + str(size[1] - round(i.position_y, 2))
 			object_information_vel_x = "X  Velocity: "  + str(round(i.velocity_x, 3)) + "m/s"
-			object_information_vel_y = "Y  Velocity: "  + str(round(i.velocity_y, 3)) + "m/s"
+			object_information_vel_y = "Y  Velocity: "  + str(round(-i.velocity_y, 3)) + "m/s"
 			object_information_acc_x = "X  Acceleration: " + str(round(i.acceleration_x, 5)) + "m/s^2"
-			object_information_acc_y = "Y  Acceleration: " + str(round(i.acceleration_y, 5)) + "m/s^2"
+			object_information_acc_y = "Y  Acceleration: " + str(round(-i.acceleration_y, 5)) + "m/s^2"
 			object_information_force_x = "X  Force: " + str('%.3e' % i.store_force_x) + "N"
-			object_information_force_y = "Y  Force: " + str('%.3e' % i.store_force_y) + "N"
+			object_information_force_y = "Y  Force: " + str('%.3e' % -i.store_force_y) + "N"
 			# Display the text
 			text_display_x = text_font_small.render(object_information_x, False, WHITE)
 			text_display_y = text_font_small.render(object_information_y, False, WHITE)
@@ -442,6 +483,7 @@ while not done:
 	screen.blit(text_z, (10, size[1] - 75))
 	screen.blit(text_x, (10, size[1] - 50))
 	screen.blit(text_c, (10, size[1] - 25))
+	screen.blit(text_o, (size[0] - 80, 40))
 
 	# Idk
 	if GRAV_CONST > 0:
