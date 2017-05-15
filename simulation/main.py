@@ -151,7 +151,6 @@ class Object:
 
         if diff_x < 0:
             angle += math.pi
-
         return angle
 
     def calculate_force(self, obj):
@@ -371,11 +370,26 @@ while not done:
     # If an object is selected, display its information
     for i in objects:
         if i.selected and not i.merged:
+            # Get acceleration and velocity from the components
             acceleration = math.sqrt(i.acceleration_x ** 2 + i.acceleration_y ** 2)
             velocity = math.sqrt(i.velocity_x ** 2 + i.velocity_y ** 2)
-            object_information = "X Position: " + str(round(i.position_x, 2)) + "  Y Position: " + str(round(i.position_y, 2)) + "  Velocity: " + str(round(velocity, 3)) + "m/s  Acceleration: " + str(round(acceleration, 5)) + "m/s^2  Force:" + str(round(i.store_force, -8)) + "N"
-            text_display = text_font.render(object_information, False, WHITE)
-            screen.blit(text_display, (600, 14))
+            # String variabgle and to format the numbers
+            object_information_x = "X Position: " + str(round(i.position_x, 2))
+            object_information_y = "Y Position: " + str(round(i.position_y, 2))
+            object_information_vel = "Velocity: "  + str(round(velocity, 3)) + "m/s"
+            object_information_acc = "Acceleration: " + str(round(acceleration, 5)) + "m/s^2"
+            object_information_force = "Force: " + str('%.3e' % i.store_force) + "N"
+            # Display the text
+            text_display_x = text_font.render(object_information_x, False, WHITE)
+            text_display_y = text_font.render(object_information_y, False, WHITE)
+            text_display_vel = text_font.render(object_information_vel, False, WHITE)
+            text_display_acc = text_font.render(object_information_acc, False, WHITE)
+            text_display_force = text_font.render(object_information_force, False, WHITE)
+            screen.blit(text_display_x, (600, 14))
+            screen.blit(text_display_y, (720, 14))
+            screen.blit(text_display_vel, (845, 14))
+            screen.blit(text_display_acc, (970, 14))
+            screen.blit(text_display_force, (1150, 14))
             break
 
     # Game speed change
