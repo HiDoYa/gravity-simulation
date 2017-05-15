@@ -5,6 +5,9 @@ By Hiroya Gojo
 ---------------------
 Use two number arguments to set screen resolution.
 Use keyboard instructions on screen to manipulate simulation.
+Idea: Arrows showing direction of force/acceleration/velocity/etc
+Idea: Presets with set amount of velocity or position of objects (store in file) to show examples
+Idea: Can store examples in files and make simulations
 
 '''
 import math
@@ -44,20 +47,21 @@ pygame.display.set_caption("Gravity Simulation - Hiroya")
 
 # Font and text
 pygame.font.init()
-text_font = pygame.font.SysFont('Times New Roman', 15)
-text_font_small = pygame.font.SysFont('Times New Roman', 13)
+font_type = "Times New Roman"
+text_font = pygame.font.SysFont(font_type, 15)
+text_font_small = pygame.font.SysFont(font_type, 13)
 
 text_space = text_font.render("Space to Restart", False, WHITE)
-text_z = text_font.render("Z for Path", False, WHITE)
-text_x = text_font.render("X for Border", False, WHITE)
-text_c = text_font.render("C for Color", False, WHITE)
+text_z = text_font.render("Z for path", False, WHITE)
+text_x = text_font.render("X for border", False, WHITE)
+text_c = text_font.render("C for color", False, WHITE)
 text_s = text_font.render("Q/W to speed up", False, WHITE)
 text_a = text_font.render("A/S to slow down", False, WHITE)
 text_d = text_font.render("E/R for more mass", False, WHITE)
 text_f = text_font.render("D/F for less mass", False, WHITE)
 text_g = text_font.render("T/Y for more objects", False, WHITE)
 text_h = text_font.render("G/H for less objects", False, WHITE)
-text_p = text_font.render("P to Pause/Unpause", False, WHITE)
+text_p = text_font.render("P to pause/unpause", False, WHITE)
 text_m = text_font_small.render("M for antigravity (FOR FUN)", False, GRAY)
 
 clock = pygame.time.Clock()
@@ -94,7 +98,8 @@ class Object:
         self.mass = mass
         self.merged = False
         self.selected = False
-        self.store_force = 0
+        self.store_force_x = 0
+        self.store_force_y = 0
                 
         self.color = color
 
@@ -141,6 +146,10 @@ class Object:
         force_x = force * math.cos(angle)
         force_y = force * math.sin(angle)
 
+        # Adds the force to the stored force
+        self.store_force_x += force_x
+        self.store_force_y += force_y
+
         # Newton's second law
         self.acceleration_x = force_x / self.mass
         self.acceleration_y = force_y / self.mass
@@ -166,8 +175,7 @@ class Object:
     def calculate_force(self, obj):
         # Equation for gravity (using big G)
         distance = math.sqrt((self.position_x - obj.position_x)**2 + (self.position_y - obj.position_y)**2)
-        self.store_force = GRAV_CONST * (self.mass * obj.mass)/ (distance**2)
-        return self.store_force
+        return GRAV_CONST * (self.mass * obj.mass)/ (distance**2)
 
     def collision(self, obj):
         # Gets distance beteween two objects
@@ -358,7 +366,9 @@ while not done:
     if all_empty:
         pressing = False
 
+    # If paused, don't need to run code
     if not pause:
+        # Run multiple times for larger game_speed
         for num in range(game_speed):
             # Checks for collision and deletes y if applicable
             for x in objects:
@@ -366,10 +376,12 @@ while not done:
                     if x != y and not x.merged and not y.merged:
                         x.collision(y)
 
-            # Zeroes out acceleration
+            # Zeroes out acceleration and old gravitational force
             for x in objects:
                 x.acceleration_x = 0
                 x.acceleration_y = 0
+                x.store_force_x = 0
+                x.store_force_y = 0
 
             # Calculates new velocity based on force of gravity
             for x in objects:
@@ -395,27 +407,31 @@ while not done:
     # If an object is selected, display its information
     for i in objects:
         if i.selected and not i.merged:
-            # Get acceleration and velocity from the components
-            acceleration = math.sqrt(i.acceleration_x ** 2 + i.acceleration_y ** 2)
-            velocity = math.sqrt(i.velocity_x ** 2 + i.velocity_y ** 2)
-            # String variabgle and to format the numbers
-            object_information_x = "X Position: " + str(round(i.position_x, 2))
-            object_information_y = "Y Position: " + str(round(i.position_y, 2))
-            object_information_vel = "Velocity: "  + str(round(velocity, 3)) + "m/s"
-            object_information_acc = "Acceleration: " + str(round(acceleration, 5)) + "m/s^2"
-            object_information_force = "Force: " + str('%.3e' % i.store_force) + "N"
+            object_information_x = "X  Position: " + str(round(i.position_x, 2))
+            object_information_y = "Y  Position: " + str(round(i.position_y, 2))
+            object_information_vel_x = "X  Velocity: "  + str(round(i.velocity_x, 3)) + "m/s"
+            object_information_vel_y = "Y  Velocity: "  + str(round(i.velocity_y, 3)) + "m/s"
+            object_information_acc_x = "X  Acceleration: " + str(round(i.acceleration_x, 5)) + "m/s^2"
+            object_information_acc_y = "Y  Acceleration: " + str(round(i.acceleration_y, 5)) + "m/s^2"
+            object_information_force_x = "X  Force: " + str('%.3e' % i.store_force_x) + "N"
+            object_information_force_y = "Y  Force: " + str('%.3e' % i.store_force_y) + "N"
             # Display the text
-            text_display_x = text_font.render(object_information_x, False, WHITE)
-            text_display_y = text_font.render(object_information_y, False, WHITE)
-            text_display_vel = text_font.render(object_information_vel, False, WHITE)
-            text_display_acc = text_font.render(object_information_acc, False, WHITE)
-            text_display_force = text_font.render(object_information_force, False, WHITE)
-            screen.blit(text_display_x, (600, 14))
-            screen.blit(text_display_y, (720, 14))
-            screen.blit(text_display_vel, (845, 14))
-            screen.blit(text_display_acc, (970, 14))
-            screen.blit(text_display_force, (1150, 14))
-            break
+            text_display_x = text_font_small.render(object_information_x, False, WHITE)
+            text_display_y = text_font_small.render(object_information_y, False, WHITE)
+            text_display_vel_x = text_font_small.render(object_information_vel_x, False, WHITE)
+            text_display_vel_y = text_font_small.render(object_information_vel_y, False, WHITE)
+            text_display_acc_x = text_font_small.render(object_information_acc_x, False, WHITE)
+            text_display_acc_y = text_font_small.render(object_information_acc_y, False, WHITE)
+            text_display_force_x = text_font_small.render(object_information_force_x, False, WHITE)
+            text_display_force_y = text_font_small.render(object_information_force_y, False, WHITE)
+            screen.blit(text_display_x, (600, 4))
+            screen.blit(text_display_y, (600, 25))
+            screen.blit(text_display_vel_x, (760, 4))
+            screen.blit(text_display_vel_y, (760, 25))
+            screen.blit(text_display_acc_x, (900, 4))
+            screen.blit(text_display_acc_y, (900, 25))
+            screen.blit(text_display_force_x, (1100, 4))
+            screen.blit(text_display_force_y, (1100, 25))
 
     # Game speed change
     text_speed = text_font.render("Speed: " + str(game_speed) + "x", False, WHITE)
