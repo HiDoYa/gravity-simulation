@@ -86,7 +86,7 @@ pressing = False
 pause = False
 draw_path = False
 draw_color = True
-border = True
+border = False
 
 # Constant
 GRAV_CONST = 6.67408 * (10 ** (-11))
