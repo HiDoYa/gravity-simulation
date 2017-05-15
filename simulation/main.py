@@ -1,3 +1,12 @@
+'''
+Gravity Simulation
+---------------------
+By Hiroya Gojo
+---------------------
+Use two number arguments to set screen resolution.
+Use keyboard instructions on screen to manipulate simulation.
+
+'''
 import math
 import pygame
 import random
