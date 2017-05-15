@@ -69,8 +69,8 @@ random.seed()
 
 # Create objects
 objects = []
-number_of_objects = 5
-start_mass = 110
+number_of_objects = 15
+start_mass = 15
 game_speed = 1
 
 # Create border
