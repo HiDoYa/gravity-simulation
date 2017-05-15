@@ -3,20 +3,40 @@ import pygame
 import random
 import sys
 
+# Returns true if the string is an integer
+def string_is_int(number):
+    try:
+        int(number)
+        return True
+    except ValueError:
+        return False
+
+width = 1280
+height = 720
+# Checks for different number of objects
+if len(sys.argv) > 1:
+    if string_is_int(sys.argv[1]):
+        width = int(sys.argv[1])
+    if len(sys.argv) > 2:
+        if string_is_int(sys.argv[2]):
+            height = int(sys.argv[2])
+ 
 # Background Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+GRAY = (120, 120, 120)
 DARK_RED = (156, 43, 43)
 
 # Initialize for program
 pygame.init()
-size = (1280, 720)
+size = (width, height)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Gravity Simulation - Hiroya")
 
 # Font and text
 pygame.font.init()
 text_font = pygame.font.SysFont('Times New Roman', 15)
+text_font_small = pygame.font.SysFont('Times New Roman', 13)
 
 text_space = text_font.render("Space to Restart", False, WHITE)
 text_z = text_font.render("Z for Path", False, WHITE)
@@ -29,6 +49,7 @@ text_f = text_font.render("D/F for less mass", False, WHITE)
 text_g = text_font.render("T/Y for more objects", False, WHITE)
 text_h = text_font.render("G/H for less objects", False, WHITE)
 text_p = text_font.render("P to Pause/Unpause", False, WHITE)
+text_m = text_font_small.render("M for antigravity (FOR FUN)", False, GRAY)
 
 clock = pygame.time.Clock()
 random.seed()
@@ -36,7 +57,7 @@ random.seed()
 # Create objects
 objects = []
 number_of_objects = 5
-start_mass = 250
+start_mass = 110
 game_speed = 1
 
 # Create border
@@ -56,26 +77,6 @@ border = True
 
 # Constant
 GRAV_CONST = 6.67408 * (10 ** (-11))
-# This looks pretty cool
-# GRAV_CONST = -6.67408 * (10 ** (-11))
-
-# Returns true if the string is an integer
-def string_is_int(number):
-    try:
-        int(number)
-        return True
-    except ValueError:
-        return False
-
-
-# Checks for different number of objects
-if len(sys.argv) > 1:
-    if string_is_int(sys.argv[1]):
-        number_of_objects = int(sys.argv[1])
-    if len(sys.argv) > 2:
-        if string_is_int(sys.argv[2]):
-            start_mass = int(sys.argv[2])
-            
 
 # class object
 class Object:
@@ -236,20 +237,24 @@ while not done:
         # Delete objects and reinitialize for new set of objects
         del objects[:]
         init_objects()
+
     # Path
     elif pressed[pygame.K_z] and not pressing:
         pressing = True
         draw_path = not draw_path 
+
     # Border
     elif pressed[pygame.K_x] and not pressing:
         pressing = True
         border = not border
         # Border needs to disappear
         screen.fill(BLACK)
+
     # Color
     elif pressed[pygame.K_c] and not pressing:
         pressing = True
         draw_color = not draw_color
+
     # Game speed +
     elif pressed[pygame.K_q] and not pressing:
         pressing = True
@@ -257,6 +262,7 @@ while not done:
     elif pressed[pygame.K_w] and not pressing:
         pressing = True
         game_speed += 10
+
     # Game speed -
     elif pressed[pygame.K_a] and not pressing:
         pressing = True
@@ -266,6 +272,7 @@ while not done:
         pressing = True
         if game_speed > 10:
             game_speed -= 10
+
     # Mass +
     elif pressed[pygame.K_e] and not pressing:
         pressing = True
@@ -273,6 +280,7 @@ while not done:
     elif pressed[pygame.K_r] and not pressing:
         pressing = True
         start_mass += 10
+
     # Mass -
     elif pressed[pygame.K_d] and not pressing:
         pressing = True
@@ -282,6 +290,7 @@ while not done:
         pressing = True
         if start_mass > 11:
             start_mass -= 10
+
     # Num +
     elif pressed[pygame.K_t] and not pressing:
         pressing = True
@@ -289,6 +298,7 @@ while not done:
     elif pressed[pygame.K_y] and not pressing:
         pressing = True
         number_of_objects += 10
+
     # Num -
     elif pressed[pygame.K_g] and not pressing:
         pressing = True
@@ -298,10 +308,16 @@ while not done:
         pressing = True
         if number_of_objects > 11:
             number_of_objects -= 10
+
     # Pause
     elif pressed[pygame.K_p] and not pressing:
         pressing = True
         pause = not pause
+
+    # Wtf
+    elif pressed[pygame.K_m] and not pressing:
+        pressing = True
+        GRAV_CONST *= -1
 
     # Check if player clicked on an object
     if pygame.mouse.get_pressed()[0]:
@@ -416,6 +432,8 @@ while not done:
     screen.blit(text_z, (10, size[1] - 75))
     screen.blit(text_x, (10, size[1] - 50))
     screen.blit(text_c, (10, size[1] - 25))
+
+    screen.blit(text_m, (size[0] - 160, size[1] - 20))
 
     # Border drawing
     if border:
