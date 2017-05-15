@@ -168,8 +168,8 @@ class Object:
 
         # If the distance between the two is less than the two object's radii, they collided
         if position <= (self.radius + obj.radius):
-            momentum_x = self.mass * self.velocity_x + obj.mass + obj.velocity_x
-            momentum_y = self.mass * self.velocity_y + obj.mass + obj.velocity_y
+            momentum_x = self.mass * self.velocity_x + obj.mass * obj.velocity_x
+            momentum_y = self.mass * self.velocity_y + obj.mass * obj.velocity_y
 
             # Merges to the larger mass
             if self.mass > obj.mass:
