@@ -276,6 +276,8 @@ def init_objects():
 
 # Starts off
 init_objects()
+# File open only works on first run
+file_open = False
 
 # Main loop
 while not done:
