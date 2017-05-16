@@ -1,14 +1,8 @@
 '''
 Gravity Simulation
----------------------
+----------------------------
+Last Edited: May 15th. 2017
 By Hiroya Gojo
----------------------
-Use two number arguments to set screen resolution.
-Use keyboard instructions on screen to manipulate simulation.
-Idea: Arrows showing direction of force/acceleration/velocity/etc
-Idea: Presets with set amount of velocity or position of objects (store in file) to show examples
-Idea: Can store examples in files and make simulations
-
 '''
 import math
 import os
