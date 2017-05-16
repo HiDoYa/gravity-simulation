@@ -15,6 +15,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (120, 120, 120)
 DARK_RED = (156, 43, 43)
+LIGHT_GRAY = (40, 40, 40)
+DARK_GRAY = (15, 15, 15)
 
 # Initialize for program
 pygame.init()
@@ -25,6 +27,7 @@ pygame.display.set_caption("Gravity Simulation - Hiroya")
 # Font and text
 pygame.font.init()
 font_type = "Times New Roman"
+text_font_large = pygame.font.SysFont(font_type, 20)
 text_font = pygame.font.SysFont(font_type, 15)
 text_font_small = pygame.font.SysFont(font_type, 13)
 
@@ -40,8 +43,10 @@ text_g = text_font.render("E for more objects", False, WHITE)
 text_h = text_font.render("D for less objects", False, WHITE)
 text_p = text_font.render("P to pause/unpause", False, WHITE)
 text_o = text_font.render("O to save", False, WHITE)
+text_i = text_font.render("I to hide UI", False, WHITE)
 
 # Status messages
+text_pause = text_font_large.render("Paused", False, DARK_RED)
 text_saved = text_font.render("Saved!", False, DARK_RED)
 text_error = text_font.render("Error encountered.", False, DARK_RED)
 
@@ -70,6 +75,7 @@ draw_path = False
 draw_color = True
 border = False
 file_open = False
+hide_controls = False
 
 # For keeping time
 # Last_saved_time and last_error_time starts at negative to prevent showing at beginning of the game
@@ -414,6 +420,13 @@ while not done:
         last_time = current_time
         GRAV_CONST *= -1
 
+    # Hide UI
+    elif pressed[pygame.K_i] and current_time > delay + last_time:
+        last_time = current_time
+        hide_controls = not hide_controls
+        if hide_controls:
+            screen.fill(BLACK)
+
     # Checks for number press between 0 to 9 -> opens the corresponding file
     for i in range(10):
         open_preset(i)
@@ -468,78 +481,89 @@ while not done:
             for i in objects:
                 i.draw_object()
 
-    # Rectangle for top bar
-    pygame.draw.rect(screen, (40, 40, 40), (0, 0, size[0], 40))
+    if not hide_controls:
+        # Rectangle for top bar
+        pygame.draw.rect(screen, LIGHT_GRAY, (0, 0, size[0], 40))
 
-    # If an object is selected, display its information
-    for i in objects:
-        if i.selected and not i.merged:
-            object_information_x = "X  Position: " + str(round(i.position_x, 2))
-            object_information_y = "Y  Position: " + str(size[1] - round(i.position_y, 2))
-            object_information_vel_x = "X  Velocity: "  + str(round(i.velocity_x, 3)) + "m/s"
-            object_information_vel_y = "Y  Velocity: "  + str(round(-i.velocity_y, 3)) + "m/s"
-            object_information_acc_x = "X  Acceleration: " + str(round(i.acceleration_x, 5)) + "m/s^2"
-            object_information_acc_y = "Y  Acceleration: " + str(round(-i.acceleration_y, 5)) + "m/s^2"
-            object_information_force_x = "X  Force: " + str('%.3e' % i.store_force_x) + "N"
-            object_information_force_y = "Y  Force: " + str('%.3e' % -i.store_force_y) + "N"
-            # Display the text
-            text_display_x = text_font_small.render(object_information_x, False, WHITE)
-            text_display_y = text_font_small.render(object_information_y, False, WHITE)
-            text_display_vel_x = text_font_small.render(object_information_vel_x, False, WHITE)
-            text_display_vel_y = text_font_small.render(object_information_vel_y, False, WHITE)
-            text_display_acc_x = text_font_small.render(object_information_acc_x, False, WHITE)
-            text_display_acc_y = text_font_small.render(object_information_acc_y, False, WHITE)
-            text_display_force_x = text_font_small.render(object_information_force_x, False, WHITE)
-            text_display_force_y = text_font_small.render(object_information_force_y, False, WHITE)
-            screen.blit(text_display_x, (600, 4))
-            screen.blit(text_display_y, (600, 25))
-            screen.blit(text_display_vel_x, (760, 4))
-            screen.blit(text_display_vel_y, (760, 25))
-            screen.blit(text_display_acc_x, (900, 4))
-            screen.blit(text_display_acc_y, (900, 25))
-            screen.blit(text_display_force_x, (1100, 4))
-            screen.blit(text_display_force_y, (1100, 25))
+        # Draw boxes to clear the text
+        pygame.draw.rect(screen, DARK_GRAY, (0, 90, 80, 30))
+        pygame.draw.rect(screen, DARK_GRAY, (size[0] - 140, 40, 140, 40))
 
-    # Game speed change
-    text_speed = text_font.render("Speed: " + str(game_speed) + "x", False, WHITE)
-    screen.blit(text_speed, (10, 14))
-    screen.blit(text_s, (10, 40))
-    screen.blit(text_a, (10, 55))
-    screen.blit(text_p, (10, 70))
+        # If an object is selected, display its information
+        for i in objects:
+            if i.selected and not i.merged:
+                object_information_x = "X  Position: " + str(round(i.position_x, 2))
+                object_information_y = "Y  Position: " + str(size[1] - round(i.position_y, 2))
+                object_information_vel_x = "X  Velocity: "  + str(round(i.velocity_x, 3)) + "m/s"
+                object_information_vel_y = "Y  Velocity: "  + str(round(-i.velocity_y, 3)) + "m/s"
+                object_information_acc_x = "X  Acceleration: " + str(round(i.acceleration_x, 5)) + "m/s^2"
+                object_information_acc_y = "Y  Acceleration: " + str(round(-i.acceleration_y, 5)) + "m/s^2"
+                object_information_force_x = "X  Force: " + str('%.3e' % i.store_force_x) + "N"
+                object_information_force_y = "Y  Force: " + str('%.3e' % -i.store_force_y) + "N"
+                # Display the text
+                text_display_x = text_font_small.render(object_information_x, False, WHITE)
+                text_display_y = text_font_small.render(object_information_y, False, WHITE)
+                text_display_vel_x = text_font_small.render(object_information_vel_x, False, WHITE)
+                text_display_vel_y = text_font_small.render(object_information_vel_y, False, WHITE)
+                text_display_acc_x = text_font_small.render(object_information_acc_x, False, WHITE)
+                text_display_acc_y = text_font_small.render(object_information_acc_y, False, WHITE)
+                text_display_force_x = text_font_small.render(object_information_force_x, False, WHITE)
+                text_display_force_y = text_font_small.render(object_information_force_y, False, WHITE)
+                screen.blit(text_display_x, (600, 4))
+                screen.blit(text_display_y, (600, 25))
+                screen.blit(text_display_vel_x, (760, 4))
+                screen.blit(text_display_vel_y, (760, 25))
+                screen.blit(text_display_acc_x, (900, 4))
+                screen.blit(text_display_acc_y, (900, 25))
+                screen.blit(text_display_force_x, (1100, 4))
+                screen.blit(text_display_force_y, (1100, 25))
 
-    # Mass Change
-    text_mass = text_font.render("Init Mass: " + str(start_mass) + "*10^11 kg", False, WHITE)
-    screen.blit(text_mass, (190, 14))
-    screen.blit(text_d, (190, 40))
-    screen.blit(text_f, (190, 55))
+        # Game speed change
+        text_speed = text_font.render("Speed: " + str(game_speed) + "x", False, WHITE)
+        screen.blit(text_speed, (10, 14))
+        screen.blit(text_s, (10, 40))
+        screen.blit(text_a, (10, 55))
+        screen.blit(text_p, (10, 70))
 
-    # Number change
-    text_number = text_font.render("Init Number: " + str(number_of_objects), False, WHITE)
-    screen.blit(text_number, (400, 14))
-    screen.blit(text_g, (400, 40))
-    screen.blit(text_h, (400, 55))
-    
-    # Instructions
-    screen.blit(text_space, (10, size[1] - 100))
-    screen.blit(text_z, (10, size[1] - 75))
-    screen.blit(text_x, (10, size[1] - 50))
-    screen.blit(text_c, (10, size[1] - 25))
-    screen.blit(text_o, (size[0] - 80, 40))
+        # Mass Change
+        text_mass = text_font.render("Init Mass: " + str(start_mass) + "*10^11 kg", False, WHITE)
+        screen.blit(text_mass, (190, 14))
+        screen.blit(text_d, (190, 40))
+        screen.blit(text_f, (190, 55))
 
-    # Displays saved when a game is saved
-    if last_saved_time + 60 > current_time:
-        screen.blit(text_saved, (size[0] - 80, 55))
+        # Number change
+        text_number = text_font.render("Init Number: " + str(number_of_objects), False, WHITE)
+        screen.blit(text_number, (400, 14))
+        screen.blit(text_g, (400, 40))
+        screen.blit(text_h, (400, 55))
+        
+        # Instructions
+        screen.blit(text_space, (10, size[1] - 100))
+        screen.blit(text_z, (10, size[1] - 75))
+        screen.blit(text_x, (10, size[1] - 50))
+        screen.blit(text_c, (10, size[1] - 25))
+        screen.blit(text_o, (size[0] - 80, 40))
+        screen.blit(text_i, (600, size[1] - 25))
 
-    if last_error_time + 60 > current_time:
-        screen.blit(text_error, (size[0] - 130, 55))
+        # Displays when paused
+        if pause:
+            screen.blit(text_pause, (10, 90))
 
-    # Wtf 2
-    if GRAV_CONST > 0:
-        text_m = text_font_small.render("M for antigravity (FOR FUN)", False, GRAY)
-    else:
-        text_m = text_font_small.render("M for antigravity (FOR FUN)", False, DARK_RED)
+        # Displays saved when a game is saved
+        if last_saved_time + 60 > current_time:
+            screen.blit(text_saved, (size[0] - 80, 55))
 
-    screen.blit(text_m, (size[0] - 160, size[1] - 20))
+        # Displays when loading game causes error
+        if last_error_time + 60 > current_time:
+            screen.blit(text_error, (size[0] - 130, 55))
+
+        # Wtf 2
+        if GRAV_CONST > 0:
+            text_m = text_font_small.render("M for antigravity (FOR FUN)", False, GRAY)
+        else:
+            text_m = text_font_small.render("M for antigravity (FOR FUN)", False, DARK_RED)
+
+        screen.blit(text_m, (size[0] - 160, size[1] - 20))
 
     # Border drawing
     if border:
