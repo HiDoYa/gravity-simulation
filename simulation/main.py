@@ -10,12 +10,76 @@ import pygame
 import random
 import sys
 
-# Variables and flags
-width = 1280
-height = 720
-file_open = False
+# Background Colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GRAY = (120, 120, 120)
+DARK_RED = (156, 43, 43)
+
+# Initialize for program
+pygame.init()
+size = (1280, 720)
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption("Gravity Simulation - Hiroya")
+
+# Font and text
+pygame.font.init()
+font_type = "Times New Roman"
+text_font = pygame.font.SysFont(font_type, 15)
+text_font_small = pygame.font.SysFont(font_type, 13)
+
+text_space = text_font.render("Space to Restart", False, WHITE)
+text_z = text_font.render("Z for path", False, WHITE)
+text_x = text_font.render("X for border", False, WHITE)
+text_c = text_font.render("C for color", False, WHITE)
+text_s = text_font.render("Q to speed up", False, WHITE)
+text_a = text_font.render("A to slow down", False, WHITE)
+text_d = text_font.render("W for more mass", False, WHITE)
+text_f = text_font.render("S for less mass", False, WHITE)
+text_g = text_font.render("E for more objects", False, WHITE)
+text_h = text_font.render("D for less objects", False, WHITE)
+text_p = text_font.render("P to pause/unpause", False, WHITE)
+text_o = text_font.render("O to save", False, WHITE)
+
+# Status messages
+text_saved = text_font.render("Saved!", False, DARK_RED)
+text_error = text_font.render("Error encountered.", False, DARK_RED)
+
+clock = pygame.time.Clock()
+random.seed()
+
+# Create objects and variable declarations
+objects = []
 file_position_x = []
 file_position_y = []
+number_of_objects = 15
+start_mass = 50
+game_speed = 1
+
+# Create border
+border_thickness = 5
+border_right = (0, 0, border_thickness, size[1])
+border_left = (size[0] - border_thickness, 0, border_thickness, size[1])
+border_top = (0, 0, size[0], border_thickness)
+border_down = (0, size[1] - border_thickness, size[0], border_thickness)
+
+# Flags
+done = False
+pause = False
+draw_path = False
+draw_color = True
+border = False
+file_open = False
+
+# For keeping time
+# Last_saved_time and last_error_time starts at negative to prevent showing at beginning of the game
+last_time = 0
+last_saved_time = -1000
+last_error_time = -1000
+current_time = 0
+
+# Constant
+GRAV_CONST = 6.67408 * (10 ** (-11))
 
 # Gets data from file
 def read_from_file(str_name):
@@ -49,74 +113,6 @@ def read_from_file(str_name):
 if len(sys.argv) > 1:
     file_to_open = sys.argv[1]
     read_from_file(file_to_open)
-
-# Background Colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GRAY = (120, 120, 120)
-DARK_RED = (156, 43, 43)
-
-# Initialize for program
-pygame.init()
-size = (width, height)
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Gravity Simulation - Hiroya")
-
-# Font and text
-pygame.font.init()
-font_type = "Times New Roman"
-text_font = pygame.font.SysFont(font_type, 15)
-text_font_small = pygame.font.SysFont(font_type, 13)
-
-text_space = text_font.render("Space to Restart", False, WHITE)
-text_z = text_font.render("Z for path", False, WHITE)
-text_x = text_font.render("X for border", False, WHITE)
-text_c = text_font.render("C for color", False, WHITE)
-text_s = text_font.render("Q to speed up", False, WHITE)
-text_a = text_font.render("A to slow down", False, WHITE)
-text_d = text_font.render("W for more mass", False, WHITE)
-text_f = text_font.render("S for less mass", False, WHITE)
-text_g = text_font.render("E for more objects", False, WHITE)
-text_h = text_font.render("D for less objects", False, WHITE)
-text_p = text_font.render("P to pause/unpause", False, WHITE)
-text_o = text_font.render("O to save", False, WHITE)
-
-# Status messages
-text_saved = text_font.render("Saved!", False, DARK_RED)
-text_error = text_font.render("Error encountered.", False, DARK_RED)
-
-clock = pygame.time.Clock()
-random.seed()
-
-# Create objects
-objects = []
-number_of_objects = 15
-start_mass = 50
-game_speed = 1
-
-# Create border
-border_thickness = 5
-border_right = (0, 0, border_thickness, size[1])
-border_left = (size[0] - border_thickness, 0, border_thickness, size[1])
-border_top = (0, 0, size[0], border_thickness)
-border_down = (0, size[1] - border_thickness, size[0], border_thickness)
-
-# Flags
-done = False
-pause = False
-draw_path = False
-draw_color = True
-border = False
-
-# For keeping time
-# Last_saved_time starts at negative to prevent showing at beginning of the game
-last_time = 0
-last_saved_time = -1000
-last_error_time = -1000
-current_time = 0
-
-# Constant
-GRAV_CONST = 6.67408 * (10 ** (-11))
 
 # class object
 class Object:
@@ -531,17 +527,18 @@ while not done:
     screen.blit(text_o, (size[0] - 80, 40))
 
     # Displays saved when a game is saved
-    if last_saved_time + 90 > current_time:
+    if last_saved_time + 60 > current_time:
         screen.blit(text_saved, (size[0] - 80, 55))
 
-    if last_error_time + 90 > current_time:
+    if last_error_time + 60 > current_time:
         screen.blit(text_error, (size[0] - 130, 55))
 
-    # Idk
+    # Wtf 2
     if GRAV_CONST > 0:
         text_m = text_font_small.render("M for antigravity (FOR FUN)", False, GRAY)
     else:
         text_m = text_font_small.render("M for antigravity (FOR FUN)", False, DARK_RED)
+
     screen.blit(text_m, (size[0] - 160, size[1] - 20))
 
     # Border drawing
