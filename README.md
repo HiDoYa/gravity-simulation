@@ -1,4 +1,4 @@
-# ap-physics-simulation
+# gravity-simulation
 Learning python and creating a physics simulation.
 
 ### 1st, 2nd, 3rd Projects
